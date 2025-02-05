@@ -5,30 +5,33 @@ function DoctorLogin() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [showPassword, setShowPassword] = useState(false); 
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const data = { username, password };
-
+  
     try {
       const response = await fetch("http://127.0.0.1:8000/api/doctor/login/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
+  
       const result = await response.json();
-
+  
       if (response.ok) {
-        
-        localStorage.setItem("username", username);
+        const { doctor_id } = result;  // Get doctor_id from response
+        const doctorName = username;  // Use the username as the doctor name
+  
+        // Store doctor info in localStorage
+        localStorage.setItem("doctorId", doctor_id);
+        localStorage.setItem("doctorName", doctorName); // Store doctor name as well
         localStorage.setItem("role", "doctor");
-
+  
         alert("Doctor login successful!");
-
-        navigate("/doctor/dashboard"); 
+        navigate("/doctor/dashboard");  // Redirect to dashboard after login
       } else {
         setErrorMessage(result.error || "Something went wrong.");
       }
@@ -36,12 +39,13 @@ function DoctorLogin() {
       setErrorMessage("Something went wrong.");
     }
   };
+  
 
   return (
     <div
       className="flex justify-center items-center min-h-screen bg-cover bg-center"
       style={{
-        backgroundImage: 'url(https://i.pinimg.com/736x/0d/01/95/0d01959517a38f0a50df0f85850f18aa.jpg)', 
+        backgroundImage: 'url(https://i.pinimg.com/736x/0d/01/95/0d01959517a38f0a50df0f85850f18aa.jpg)',
       }}
     >
       <div className="bg-white p-8 rounded-lg shadow-lg w-full sm:w-80 md:w-96 max-w-md">

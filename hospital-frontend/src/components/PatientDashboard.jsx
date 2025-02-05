@@ -13,67 +13,65 @@ const PatientDashboard = () => {
     const storedPatientName = localStorage.getItem("patientName");
     setPatientName(storedPatientName || "Patient");
 
-    // Fetch doctors
+    const patientId = localStorage.getItem("patientId");
+    if (patientId) {
+      fetch(`http://127.0.0.1:8000/api/patient-appointments/${patientId}/`)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to fetch appointments.");
+          }
+          return response.json();
+        })
+        .then((data) => setAppointments(data))
+        .catch((error) => {
+          console.error("Error fetching appointments:", error);
+          setErrorMessage("Error fetching your appointments.");
+        });
+    }
+
     fetch("http://127.0.0.1:8000/api/doctors/")
       .then((response) => response.json())
-      .then((data) => {
-        console.log("Fetched doctors:", data);  // Debugging
-        setDoctors(data);
-      })
+      .then((data) => setDoctors(data))
       .catch((error) => console.error("Error fetching doctors:", error));
-
-    // Fetch appointments without token
-    fetch("http://127.0.0.1:8000/api/patient-appointments/")
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Fetched appointments:", data);  // Debugging
-        setAppointments(data);
-      })
-      .catch((error) => console.error("Error fetching appointments:", error));
   }, []);
 
   const handleBookAppointment = () => {
+    const patientId = localStorage.getItem("patientId");
     if (!selectedDoctor || !appointmentDate || !reason) {
       alert("Please fill in all fields.");
       return;
     }
-  
+
     const appointmentData = {
       doctor_id: selectedDoctor.id,
-      patient_id: localStorage.getItem('patientId'),  // Assuming you save patient ID in localStorage
+      patient_id: patientId,
       date: appointmentDate,
       reason: reason,
     };
-  
-    console.log("Appointment Data:", appointmentData); // Debugging the data
-  
+
     fetch("http://127.0.0.1:8000/api/appointments/create/", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(appointmentData),
     })
-      .then(response => {
+      .then((response) => {
         if (!response.ok) {
-          throw new Error("Failed to create appointment. Status: " + response.status);
+          throw new Error("Failed to create appointment.");
         }
         return response.json();
       })
-      .then(data => {
-        console.log("Appointment Created:", data);  // Debugging
+      .then((data) => {
+        setAppointments((prev) => [...prev, data]);
         alert("Appointment booked successfully!");
-        setAppointments(prev => [...prev, { ...data, doctor: selectedDoctor }]);
         setSelectedDoctor(null);
         setAppointmentDate("");
         setReason("");
       })
       .catch((error) => {
         console.error("Error:", error);
-        setErrorMessage("Detailed error: " + error.message);  // Better error message
+        setErrorMessage("Error: " + error.message);
       });
   };
-  
 
   return (
     <div className="bg-gray-100 min-h-screen flex items-center justify-center py-8">
@@ -127,20 +125,15 @@ const PatientDashboard = () => {
           Book Appointment
         </button>
 
-        {errorMessage && (
-          <p className="mt-4 text-red-600">{errorMessage}</p>
-        )}
+        {errorMessage && <p className="mt-4 text-red-600">{errorMessage}</p>}
 
         <h3 className="text-2xl mt-8 mb-6">Your Appointments</h3>
         {appointments.length > 0 ? (
           <ul>
             {appointments.map((appointment) => (
               <li key={appointment.id} className="mb-4">
-                <div className="font-semibold">
-                  Dr. {appointment.doctor.user.username} -{" "}
-                  {appointment.doctor.specialty}
-                </div>
-                <div>{appointment.date}</div>
+                <div className="font-semibold">Dr. {appointment.doctor_name}</div>
+                <div>{new Date(appointment.date).toLocaleString()}</div>
                 <div>{appointment.reason}</div>
               </li>
             ))}
