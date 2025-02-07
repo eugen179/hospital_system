@@ -8,31 +8,46 @@ const PatientDashboard = () => {
   const [reason, setReason] = useState("");
   const [patientName, setPatientName] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     const storedPatientName = localStorage.getItem("patientName");
+    const patientId = localStorage.getItem("patientId");
+
+    if (!patientId) {
+      setErrorMessage("You are not logged in. Please log in first.");
+      return;
+    }
+
     setPatientName(storedPatientName || "Patient");
 
-    const patientId = localStorage.getItem("patientId");
-    if (patientId) {
-      fetch(`http://127.0.0.1:8000/api/patient-appointments/${patientId}/`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch appointments.");
-          }
-          return response.json();
-        })
-        .then((data) => setAppointments(data))
-        .catch((error) => {
-          console.error("Error fetching appointments:", error);
-          setErrorMessage("Error fetching your appointments.");
-        });
-    }
+    fetch(`http://127.0.0.1:8000/api/patient-appointments/${patientId}/`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch appointments.");
+        }
+        return response.json();
+      })
+      .then((data) => setAppointments(data))
+      .catch((error) => {
+        console.error("Error fetching appointments:", error);
+        setErrorMessage("Error fetching your appointments.");
+      });
 
     fetch("http://127.0.0.1:8000/api/doctors/")
       .then((response) => response.json())
       .then((data) => setDoctors(data))
-      .catch((error) => console.error("Error fetching doctors:", error));
+      .catch((error) => console.error("Error fetching doctors:", error))
+
+    const interval = setInterval(() => {
+      fetch(`http://127.0.0.1:8000/api/notifications/${patientId}/`)
+        .then((response) => response.json())
+        .then((data) => setNotifications(data))
+        .catch((error) => console.error("Error fetching notifications:", error));
+    }, 5000);
+
+    
+    return () => clearInterval(interval);
   }, []);
 
   const handleBookAppointment = () => {
@@ -70,6 +85,27 @@ const PatientDashboard = () => {
       .catch((error) => {
         console.error("Error:", error);
         setErrorMessage("Error: " + error.message);
+      });
+  };
+
+  const handleDeleteAppointment = (appointmentId) => {
+    const patientId = localStorage.getItem("patientId");
+    fetch(`http://127.0.0.1:8000/api/appointments/delete/${appointmentId}/`, {
+      method: "DELETE",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to delete appointment.");
+        }
+        return response.json();
+      })
+      .then(() => {
+        setAppointments(appointments.filter((appointment) => appointment.id !== appointmentId));
+        alert("Appointment deleted successfully!");
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        setErrorMessage("Error deleting appointment.");
       });
   };
 
@@ -135,11 +171,30 @@ const PatientDashboard = () => {
                 <div className="font-semibold">Dr. {appointment.doctor_name}</div>
                 <div>{new Date(appointment.date).toLocaleString()}</div>
                 <div>{appointment.reason}</div>
+                <button
+                  onClick={() => handleDeleteAppointment(appointment.id)}
+                  className="mt-2 bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-600"
+                >
+                  Delete Appointment
+                </button>
               </li>
             ))}
           </ul>
         ) : (
-          <p>You have no upcoming appointments.</p>
+          <p>No appointments scheduled yet.</p>
+        )}
+
+        <h3 className="text-2xl mt-8 mb-6">Notifications</h3>
+        {notifications.length > 0 ? (
+          <ul>
+            {notifications.map((notification) => (
+              <li key={notification.id} className="border-b py-2">
+                {notification.message}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No notifications yet.</p>
         )}
       </div>
     </div>

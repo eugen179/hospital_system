@@ -5,7 +5,7 @@ class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     specialty = models.CharField(max_length=100)
 
-    def _str_(self):
+    def __str__(self):
         return self.user.username
 
 class Patient(models.Model):
@@ -13,16 +13,16 @@ class Patient(models.Model):
     birth_date = models.DateField()
     phone_number = models.CharField(max_length=15)
 
-    def _str_(self):
+    def __str__(self):
         return self.user.username
     
 class Notification(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     message = models.TextField()
     date_created = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)  # Add the 'is_read' field
+    is_read = models.BooleanField(default=False)  
 
-    def _str_(self):
+    def __str__(self):
         return f"Notification for {self.patient.username}"
 
 class Appointment(models.Model):
@@ -30,7 +30,16 @@ class Appointment(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     date = models.DateTimeField()
     reason = models.TextField()
-    is_approved = models.BooleanField(default=False)  # New field for appointment approval
+    is_approved = models.BooleanField(default=False)  
 
-    def _str_(self):
+    def __str__(self):
         return f"Appointment for {self.patient.user.username} with Dr. {self.doctor.user.username} on {self.date}"
+    
+class Notification(models.Model):
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Notification for {self.patient.user.username}"

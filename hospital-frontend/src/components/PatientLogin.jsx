@@ -27,7 +27,7 @@ function PatientLogin() {
         localStorage.setItem("role", "patient");
         localStorage.setItem("username", result.username);
         localStorage.setItem("patientName", result.patient_name || "Patient");
-        localStorage.setItem("patientId", result.patient_id);  // Store patient ID here
+        localStorage.setItem("patientId", result.patient_id);  
 
         toast.success(`Welcome, ${result.username}! Login successful!`, {
           position: "top-center",

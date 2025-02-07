@@ -48,7 +48,7 @@ class PatientSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ['id', 'patient', 'message', 'date_created', 'is_read']  # Add 'is_read' field
+        fields = ['id', 'patient', 'message', 'date_created', 'is_read']  
 
     def create(self, validated_data):
         notification = Notification.objects.create(**validated_data)
@@ -67,11 +67,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
         doctor_id = validated_data.pop('doctor_id')
         patient_id = validated_data.pop('patient_id')
 
-        # Fetch the doctor and patient instances using the IDs
         doctor = Doctor.objects.get(id=doctor_id)
         patient = Patient.objects.get(id=patient_id)
 
-        # Create and return the appointment
         appointment = Appointment.objects.create(doctor=doctor, patient=patient, **validated_data)
         return appointment
 
@@ -82,4 +80,4 @@ class PatientAppointmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appointment
-        fields = ['id', 'doctor_name', 'patient_name', 'date', 'reason', 'is_approved']  # Added is_approved field
+        fields = ['id', 'doctor_name', 'patient_name', 'date', 'reason', 'is_approved']  
