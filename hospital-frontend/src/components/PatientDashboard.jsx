@@ -9,6 +9,7 @@ const PatientDashboard = () => {
   const [patientName, setPatientName] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [notifications, setNotifications] = useState([]);
+  const [bookingError, setBookingError] = useState("");
 
   useEffect(() => {
     const storedPatientName = localStorage.getItem("patientName");
@@ -37,7 +38,7 @@ const PatientDashboard = () => {
     fetch("http://127.0.0.1:8000/api/doctors/")
       .then((response) => response.json())
       .then((data) => setDoctors(data))
-      .catch((error) => console.error("Error fetching doctors:", error))
+      .catch((error) => console.error("Error fetching doctors:", error));
 
     const interval = setInterval(() => {
       fetch(`http://127.0.0.1:8000/api/notifications/${patientId}/`)
@@ -46,12 +47,13 @@ const PatientDashboard = () => {
         .catch((error) => console.error("Error fetching notifications:", error));
     }, 5000);
 
-    
     return () => clearInterval(interval);
   }, []);
 
   const handleBookAppointment = () => {
     const patientId = localStorage.getItem("patientId");
+    setBookingError(""); // Clear any previous booking errors
+
     if (!selectedDoctor || !appointmentDate || !reason) {
       alert("Please fill in all fields.");
       return;
@@ -69,9 +71,10 @@ const PatientDashboard = () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(appointmentData),
     })
-      .then((response) => {
+      .then(async (response) => {
         if (!response.ok) {
-          throw new Error("Failed to create appointment.");
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to create appointment.");
         }
         return response.json();
       })
@@ -81,15 +84,24 @@ const PatientDashboard = () => {
         setSelectedDoctor(null);
         setAppointmentDate("");
         setReason("");
+        setBookingError("");
       })
       .catch((error) => {
         console.error("Error:", error);
-        setErrorMessage("Error: " + error.message);
+        if (error.message.includes("within 30 minutes")) {
+          setBookingError(
+            "This time slot is unavailable. The doctor already has an appointment scheduled within one hour of your requested time. Please either:" +
+            "\n• Select a different time slot (at least one hour before or after any existing appointmen)" +
+            "\n• Choose a different doctor" +
+            "\n• Try booking for a different day"
+          );
+        } else {
+          setBookingError("Error booking appointment. Please try again.");
+        }
       });
   };
 
   const handleDeleteAppointment = (appointmentId) => {
-    const patientId = localStorage.getItem("patientId");
     fetch(`http://127.0.0.1:8000/api/appointments/delete/${appointmentId}/`, {
       method: "DELETE",
     })
@@ -126,6 +138,7 @@ const PatientDashboard = () => {
                 (doc) => doc.id === parseInt(e.target.value)
               );
               setSelectedDoctor(doctor || null);
+              setBookingError(""); // Clear error when doctor changes
             }}
           >
             <option value="">Choose a doctor</option>
@@ -142,7 +155,10 @@ const PatientDashboard = () => {
             type="datetime-local"
             className="w-full p-2 border border-gray-300 rounded-md"
             value={appointmentDate}
-            onChange={(e) => setAppointmentDate(e.target.value)}
+            onChange={(e) => {
+              setAppointmentDate(e.target.value);
+              setBookingError(""); // Clear error when date changes
+            }}
           />
         </div>
         <div className="mb-4">
@@ -154,6 +170,14 @@ const PatientDashboard = () => {
             placeholder="Enter reason for your visit"
           />
         </div>
+        
+        {bookingError && (
+          <div className="mb-4 p-4 bg-orange-100 border-l-4 border-orange-500 text-orange-700">
+            <p className="font-medium mb-2">Booking Notice:</p>
+            <p className="whitespace-pre-line">{bookingError}</p>
+          </div>
+        )}
+
         <button
           onClick={handleBookAppointment}
           className="w-full py-2 px-4 bg-teal-600 text-white rounded-md hover:bg-teal-500"
@@ -167,7 +191,7 @@ const PatientDashboard = () => {
         {appointments.length > 0 ? (
           <ul>
             {appointments.map((appointment) => (
-              <li key={appointment.id} className="mb-4">
+              <li key={appointment.id} className="mb-4 p-4 border rounded-lg">
                 <div className="font-semibold">Dr. {appointment.doctor_name}</div>
                 <div>{new Date(appointment.date).toLocaleString()}</div>
                 <div>{appointment.reason}</div>

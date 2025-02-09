@@ -1,10 +1,9 @@
-# views.py
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import generics
-from rest_framework import status
+from rest_framework import generics, status
 from django.contrib.auth import authenticate
 from django.db import transaction
+from django.core.exceptions import ValidationError
 from .models import Doctor, Patient, Appointment, Notification
 from .serializers import DoctorSerializer, PatientSerializer, AppointmentSerializer, PatientAppointmentSerializer, NotificationSerializer
 
@@ -15,7 +14,6 @@ class PatientSignup(APIView):
             serializer.save()
             return Response({"message": "Patient signed up successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class PatientLogin(APIView):
     def post(self, request):
@@ -29,7 +27,6 @@ class PatientLogin(APIView):
             return Response({"error": "No associated patient found"}, status=status.HTTP_404_NOT_FOUND)
         return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
-
 class DoctorLogin(APIView):
     def post(self, request):
         username = request.data.get("username")
@@ -42,22 +39,31 @@ class DoctorLogin(APIView):
             return Response({"error": "No associated doctor found"}, status=status.HTTP_404_NOT_FOUND)
         return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
-
 class DoctorListView(generics.ListCreateAPIView):
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer
-
 
 class DoctorDetailView(generics.RetrieveAPIView):
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer
 
+class AppointmentCreateView(APIView):
+    def post(self, request):
+        serializer = AppointmentSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            try:
+                appointment = serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            except ValidationError as e:
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ApproveAppointmentView(APIView):
     def post(self, request, appointment_id):
         try:
             with transaction.atomic():
-                appointment = Appointment.objects.select_related('doctor', 'patient', 'doctor__user', 'patient__user').get(id=appointment_id)
+                appointment = Appointment.objects.select_related('doctor', 'patient').get(id=appointment_id)
                 if appointment.is_approved:
                     return Response(
                         {"message": "Appointment is already approved"},
@@ -106,13 +112,11 @@ class NotificationView(APIView):
         notifications_data = NotificationSerializer(notifications, many=True).data  
         return Response(notifications_data, status=status.HTTP_200_OK)
 
-
 class PatientAppointmentsView(APIView):
     def get(self, request, patient_id):
         appointments = Appointment.objects.filter(patient_id=patient_id)
         serializer = PatientAppointmentSerializer(appointments, many=True)
         return Response(serializer.data)
-
 
 class DoctorAppointmentsView(APIView):
     def get(self, request, doctor_id):
@@ -120,29 +124,11 @@ class DoctorAppointmentsView(APIView):
         serializer = PatientAppointmentSerializer(appointments, many=True)
         return Response(serializer.data)
 
-
-class AppointmentCreateView(APIView):
-    def post(self, request):
-        serializer = AppointmentSerializer(data=request.data)
-
-        if serializer.is_valid():  
-            appointment = serializer.save()  
-            return Response(serializer.data, status=status.HTTP_201_CREATED)  
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
-    
-
 class AppointmentDeleteView(APIView):
     def delete(self, request, appointment_id):
         try:
             appointment = Appointment.objects.get(id=appointment_id)
-            doctor = appointment.doctor
-            patient = appointment.patient
-            
             appointment.delete()
             return Response({"message": "Appointment deleted successfully"}, status=status.HTTP_200_OK)
-
         except Appointment.DoesNotExist:
             return Response({"error": "Appointment not found"}, status=status.HTTP_404_NOT_FOUND)
-
-
-            
