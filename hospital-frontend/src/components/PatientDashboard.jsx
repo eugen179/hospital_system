@@ -65,6 +65,7 @@ const PatientDashboard = () => {
       date: appointmentDate,
       reason: reason,
     };
+    
 
     fetch("http://127.0.0.1:8000/api/appointments/create/", {
       method: "POST",
@@ -120,7 +121,27 @@ const PatientDashboard = () => {
         setErrorMessage("Error deleting appointment.");
       });
   };
-
+  
+  const handleDeleteNotification = (notificationId) => {
+    fetch(`http://127.0.0.1:8000/api/notifications/delete/${notificationId}/`, {
+      method: "DELETE",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to delete notification.");
+        }
+        return response.json();
+      })
+      .then(() => {
+        setNotifications(notifications.filter((notification) => notification.id !== notificationId));
+        alert("Notification deleted successfully!");
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        setErrorMessage("Error deleting notification.");
+      });
+  };
+  
   return (
     <div className="bg-gray-100 min-h-screen flex items-center justify-center py-8">
       <div className="bg-white p-10 shadow-lg rounded-lg max-w-lg w-full">
@@ -212,8 +233,14 @@ const PatientDashboard = () => {
         {notifications.length > 0 ? (
           <ul>
             {notifications.map((notification) => (
-              <li key={notification.id} className="border-b py-2">
-                {notification.message}
+              <li key={notification.id} className="border-b py-2 flex justify-between items-center">
+                <span>{notification.message}</span>
+                <button
+                  onClick={() => handleDeleteNotification(notification.id)}
+                  className="ml-4 bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-600"
+                >
+                  Delete
+                </button>
               </li>
             ))}
           </ul>

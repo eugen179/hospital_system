@@ -7,7 +7,7 @@ class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     specialty = models.CharField(max_length=100)
 
-    def __str__(self):
+    def __str__(self):  # Fixed method name
         return self.user.username
 
 class Patient(models.Model):
@@ -18,6 +18,7 @@ class Patient(models.Model):
     def __str__(self):
         return self.user.username
 
+
 class Appointment(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
@@ -25,7 +26,7 @@ class Appointment(models.Model):
     reason = models.TextField()
     is_approved = models.BooleanField(default=False)
 
-    def __str__(self):
+    def __str__(self):  # Fixed method name
         return f"Appointment for {self.patient.user.username} with Dr. {self.doctor.user.username} on {self.date}"
 
     def clean(self):
@@ -58,5 +59,5 @@ class Notification(models.Model):
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):
+    def __str__(self):  # Fixed method name
         return f"Notification for {self.patient.user.username}"

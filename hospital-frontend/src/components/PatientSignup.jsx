@@ -14,26 +14,31 @@ function PatientSignup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Correct flat data structure
     const data = {
-      user: { username, email, password },
-      patient: { birth_date: birthDate, phone_number: phoneNumber },
+      username,
+      password,
+      email,
+      birth_date: birthDate,
+      phone_number: phoneNumber,
     };
-
+  
     try {
       const response = await fetch("http://127.0.0.1:8000/api/patient/signup/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
+  
       const result = await response.json();
-
+  
       if (response.ok) {
         toast.success("Signup successful! Redirecting to login...", {
           position: "top-center",
           autoClose: 2000,
         });
-
+  
         setTimeout(() => navigate("/login"), 2500);
       } else {
         setErrorMessage(result.error || "Something went wrong.");
@@ -44,6 +49,7 @@ function PatientSignup() {
       toast.error("Something went wrong.");
     }
   };
+  
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-blue-500 to-blue-300">

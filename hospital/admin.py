@@ -12,7 +12,7 @@ class DoctorAdmin(admin.ModelAdmin):
 # Register Patient model
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
-    list_display = ('user', 'birth_date', 'phone_number')  # Display username, birth date, and phone number
+    list_display = ('user', 'birth_date')  # Display username, birth date, and phone number
     search_fields = ('user__username', 'phone_number')  # Search by username or phone number
 
 # Register Appointment model with custom admin features
