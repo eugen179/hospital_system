@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Calendar, Clock, User, Trash2, Bell, PlusCircle } from "lucide-react";
 
 const PatientDashboard = () => {
   const [doctors, setDoctors] = useState([]);
@@ -20,7 +21,6 @@ const PatientDashboard = () => {
       return;
     }
 
-    // Fetch patient details if name is not found in localStorage
     if (!storedPatientName) {
       fetch(`http://127.0.0.1:8000/api/patient/${patientId}/`)
         .then((response) => response.json())
@@ -66,7 +66,7 @@ const PatientDashboard = () => {
 
   const handleBookAppointment = () => {
     const patientId = localStorage.getItem("patientId");
-    setBookingError(""); // Clear any previous booking errors
+    setBookingError("");
 
     if (!selectedDoctor || !appointmentDate || !reason) {
       alert("Please fill in all fields.");
@@ -156,109 +156,179 @@ const PatientDashboard = () => {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen flex items-center justify-center py-8">
-      <div className="bg-white p-10 shadow-lg rounded-lg max-w-lg w-full">
-        <h2 className="text-3xl font-semibold text-center text-teal-600 mb-4">
-          Welcome, {patientName}!
-        </h2>
-        <h3 className="text-2xl text-center mb-6">Book an Appointment</h3>
-        <div className="mb-4">
-          <label className="block text-gray-700">Select Doctor:</label>
-          <select
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={selectedDoctor ? selectedDoctor.id : ""}
-            onChange={(e) => {
-              const doctor = doctors.find(
-                (doc) => doc.id === parseInt(e.target.value)
-              );
-              setSelectedDoctor(doctor || null);
-              setBookingError(""); // Clear error when doctor changes
-            }}
-          >
-            <option value="">Choose a doctor</option>
-            {doctors.map((doctor) => (
-              <option key={doctor.id} value={doctor.id}>
-                Dr. {doctor.user.username} - {doctor.specialty}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Date and Time:</label>
-          <input
-            type="datetime-local"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={appointmentDate}
-            onChange={(e) => {
-              setAppointmentDate(e.target.value);
-              setBookingError(""); // Clear error when date changes
-            }}
-          />
-        </div>
-        <div className="mb-4">
-          <label className="block text-gray-700">Reason:</label>
-          <textarea
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder="Enter reason for your visit"
-          />
-        </div>
-
-        {bookingError && (
-          <div className="mb-4 p-4 bg-orange-100 border-l-4 border-orange-500 text-orange-700">
-            <p className="font-medium mb-2">Booking Notice:</p>
-            <p className="whitespace-pre-line">{bookingError}</p>
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header Section */}
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden mb-8">
+          <div className="bg-gradient-to-r from-teal-600 to-teal-700 px-8 py-6">
+            <div className="flex items-center space-x-4">
+              <User className="h-12 w-12 text-white" />
+              <h2 className="text-3xl font-bold text-white">
+                Welcome, {patientName}!
+              </h2>
+            </div>
           </div>
-        )}
+        </div>
 
-        <button
-          onClick={handleBookAppointment}
-          className="w-full py-2 px-4 bg-teal-600 text-white rounded-md hover:bg-teal-500"
-        >
-          Book Appointment
-        </button>
+        {/* Booking Section */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div className="flex items-center mb-6">
+            <PlusCircle className="h-6 w-6 text-teal-600 mr-2" />
+            <h3 className="text-2xl font-semibold text-gray-800">Book an Appointment</h3>
+          </div>
 
-        {errorMessage && <p className="mt-4 text-red-600">{errorMessage}</p>}
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="flex items-center gap-2">
+                  <User className="h-4 w-4 text-gray-500" />
+                  <span>Select Doctor</span>
+                </div>
+              </label>
+              <select
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+                value={selectedDoctor ? selectedDoctor.id : ""}
+                onChange={(e) => {
+                  const doctor = doctors.find((doc) => doc.id === parseInt(e.target.value));
+                  setSelectedDoctor(doctor || null);
+                  setBookingError("");
+                }}
+              >
+                <option value="">Choose a doctor</option>
+                {doctors.map((doctor) => (
+                  <option key={doctor.id} value={doctor.id}>
+                    Dr. {doctor.user.username} - {doctor.specialty}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        <h3 className="text-2xl mt-8 mb-6">Your Appointments</h3>
-        {appointments.length > 0 ? (
-          <ul>
-            {appointments.map((appointment) => (
-              <li key={appointment.id} className="mb-4 p-4 border rounded-lg">
-                <div className="font-semibold">Dr. {appointment.doctor_name}</div>
-                <div>{new Date(appointment.date).toLocaleString()}</div>
-                <div>{appointment.reason}</div>
-                <button
-                  onClick={() => handleDeleteAppointment(appointment.id)}
-                  className="mt-2 bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-600"
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-500" />
+                  <span>Date and Time</span>
+                </div>
+              </label>
+              <input
+                type="datetime-local"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200"
+                value={appointmentDate}
+                onChange={(e) => {
+                  setAppointmentDate(e.target.value);
+                  setBookingError("");
+                }}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-gray-500" />
+                  <span>Reason for Visit</span>
+                </div>
+              </label>
+              <textarea
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all duration-200 min-h-[100px]"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Please describe your symptoms or reason for visit..."
+              />
+            </div>
+
+            {bookingError && (
+              <div className="p-4 bg-orange-50 border-l-4 border-orange-500 rounded-lg">
+                <div className="flex">
+                  <div className="ml-3">
+                    <p className="text-sm text-orange-700 font-medium">Booking Notice:</p>
+                    <p className="mt-2 text-sm text-orange-700 whitespace-pre-line">{bookingError}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={handleBookAppointment}
+              className="w-full py-3 px-4 bg-gradient-to-r from-teal-600 to-teal-700 text-white rounded-lg hover:from-teal-500 hover:to-teal-600 transition-all duration-200 font-medium flex items-center justify-center space-x-2"
+            >
+              <PlusCircle className="h-5 w-5" />
+              <span>Book Appointment</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Appointments Section */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div className="flex items-center mb-6">
+            <Calendar className="h-6 w-6 text-teal-600 mr-2" />
+            <h3 className="text-2xl font-semibold text-gray-800">Your Appointments</h3>
+          </div>
+
+          {appointments.length > 0 ? (
+            <div className="space-y-4">
+              {appointments.map((appointment) => (
+                <div
+                  key={appointment.id}
+                  className="bg-gray-50 rounded-xl p-6 transition-all duration-200 hover:shadow-md"
                 >
-                  Delete Appointment
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No appointments scheduled yet.</p>
-        )}
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-800">
+                        Dr. {appointment.doctor_name}
+                      </h4>
+                      <p className="text-gray-600 mt-1">
+                        {new Date(appointment.date).toLocaleString()}
+                      </p>
+                      <p className="text-gray-600 mt-2">{appointment.reason}</p>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteAppointment(appointment.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors duration-200"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8">No appointments scheduled yet.</p>
+          )}
+        </div>
 
-        <h3 className="text-2xl mt-8 mb-6">Notifications</h3>
-        {notifications.length > 0 ? (
-          <ul>
-            {notifications.map((notification) => (
-              <li key={notification.id} className="border-b py-2 flex justify-between items-center">
-                <span>{notification.message}</span>
-                <button
-                  onClick={() => handleDeleteNotification(notification.id)}
-                  className="ml-4 bg-red-500 text-white py-1 px-2 rounded-md hover:bg-red-600"
+        {/* Notifications Section */}
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          <div className="flex items-center mb-6">
+            <Bell className="h-6 w-6 text-teal-600 mr-2" />
+            <h3 className="text-2xl font-semibold text-gray-800">Notifications</h3>
+          </div>
+
+          {notifications.length > 0 ? (
+            <div className="space-y-4">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className="flex items-center justify-between bg-gray-50 rounded-xl p-4 transition-all duration-200 hover:shadow-md"
                 >
-                  Delete
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No notifications yet.</p>
+                  <p className="text-gray-700">{notification.message}</p>
+                  <button
+                    onClick={() => handleDeleteNotification(notification.id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors duration-200"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8">No notifications yet.</p>
+          )}
+        </div>
+
+        {errorMessage && (
+          <div className="mt-8 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+            <p className="text-red-700">{errorMessage}</p>
+          </div>
         )}
       </div>
     </div>
