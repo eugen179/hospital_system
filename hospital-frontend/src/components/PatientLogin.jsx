@@ -13,27 +13,26 @@ function PatientLogin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const data = { username, password };
-
+  
     try {
       const response = await fetch("http://127.0.0.1:8000/api/patient/login/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-
+  
       const result = await response.json();
-
+  
       if (response.ok) {
         localStorage.setItem("role", "patient");
-        localStorage.setItem("username", result.username);
         localStorage.setItem("patientName", result.patient_name || "Patient");
-        localStorage.setItem("patientId", result.patient_id);  
-
-        toast.success(`Welcome, ${result.username}! Login successful!`, {
+        localStorage.setItem("patientId", result.patient_id);
+  
+        toast.success(`Welcome, ${result.patient_name || "Patient"}! Login successful!`, {
           position: "top-center",
           autoClose: 2000,
         });
-
+  
         setTimeout(() => navigate("/patient/dashboard"), 2500);
       } else {
         setErrorMessage(result.error || "Something went wrong.");
@@ -42,7 +41,7 @@ function PatientLogin() {
       setErrorMessage("Something went wrong.");
     }
   };
-
+  
   return (
     <div
       className="flex justify-center items-center min-h-screen bg-cover bg-center"

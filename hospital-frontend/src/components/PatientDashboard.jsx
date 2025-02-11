@@ -20,7 +20,21 @@ const PatientDashboard = () => {
       return;
     }
 
-    setPatientName(storedPatientName || "Patient");
+    // Fetch patient details if name is not found in localStorage
+    if (!storedPatientName) {
+      fetch(`http://127.0.0.1:8000/api/patient/${patientId}/`)
+        .then((response) => response.json())
+        .then((data) => {
+          setPatientName(data.name);
+          localStorage.setItem("patientName", data.name);
+        })
+        .catch((error) => {
+          console.error("Error fetching patient details:", error);
+          setErrorMessage("Failed to fetch patient details.");
+        });
+    } else {
+      setPatientName(storedPatientName);
+    }
 
     fetch(`http://127.0.0.1:8000/api/patient-appointments/${patientId}/`)
       .then((response) => {
@@ -65,7 +79,6 @@ const PatientDashboard = () => {
       date: appointmentDate,
       reason: reason,
     };
-    
 
     fetch("http://127.0.0.1:8000/api/appointments/create/", {
       method: "POST",
@@ -92,7 +105,7 @@ const PatientDashboard = () => {
         if (error.message.includes("within 30 minutes")) {
           setBookingError(
             "This time slot is unavailable. The doctor already has an appointment scheduled within one hour of your requested time. Please either:" +
-            "\n• Select a different time slot (at least one hour before or after any existing appointmen)" +
+            "\n• Select a different time slot (at least one hour before or after any existing appointment)" +
             "\n• Choose a different doctor" +
             "\n• Try booking for a different day"
           );
@@ -121,7 +134,7 @@ const PatientDashboard = () => {
         setErrorMessage("Error deleting appointment.");
       });
   };
-  
+
   const handleDeleteNotification = (notificationId) => {
     fetch(`http://127.0.0.1:8000/api/notifications/delete/${notificationId}/`, {
       method: "DELETE",
@@ -141,7 +154,7 @@ const PatientDashboard = () => {
         setErrorMessage("Error deleting notification.");
       });
   };
-  
+
   return (
     <div className="bg-gray-100 min-h-screen flex items-center justify-center py-8">
       <div className="bg-white p-10 shadow-lg rounded-lg max-w-lg w-full">
@@ -191,7 +204,7 @@ const PatientDashboard = () => {
             placeholder="Enter reason for your visit"
           />
         </div>
-        
+
         {bookingError && (
           <div className="mb-4 p-4 bg-orange-100 border-l-4 border-orange-500 text-orange-700">
             <p className="font-medium mb-2">Booking Notice:</p>

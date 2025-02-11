@@ -55,7 +55,11 @@ class PatientLogin(APIView):
         if user is not None:
             patient = Patient.objects.filter(user=user).first()
             if patient:
-                return Response({"message": "Patient login successful", "patient_id": patient.id})
+                return Response({
+                    "message": "Patient login successful",
+                    "patient_id": patient.id,
+                    "patient_name": user.first_name or user.username  # Use first_name if available
+                })
             return Response({"error": "No associated patient found"}, status=status.HTTP_404_NOT_FOUND)
         return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
