@@ -179,3 +179,31 @@ class NotificationDeleteView(APIView):
             return Response({"message": "Notification deleted successfully"}, status=status.HTTP_200_OK)
         except Notification.DoesNotExist:
             return Response({"error": "Notification not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+class UpdateAppointmentDetailsView(APIView):
+    def put(self, request, appointment_id):
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+            
+            if not appointment.is_approved:
+                return Response({"error": "Appointment is not approved yet"}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Fix the field names to match the model
+            appointment.prescription = request.data.get('prescription', appointment.prescription)
+            appointment.diagnosis = request.data.get('diagnosis', appointment.diagnosis)
+            appointment.save()
+            
+            # Create a notification for the patient
+            Notification.objects.create(
+                patient=appointment.patient,
+                message=f"Dr. {appointment.doctor.user.username} has updated your appointment details."
+            )
+            
+            return Response({
+                "message": "Appointment details updated successfully",
+                "prescription": appointment.prescription,
+                "diagnosis": appointment.diagnosis
+            }, status=status.HTTP_200_OK)
+        
+        except Appointment.DoesNotExist:
+            return Response({"error": "Appointment not found"}, status=status.HTTP_404_NOT_FOUND)

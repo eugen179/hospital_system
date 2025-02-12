@@ -51,11 +51,15 @@ class AppointmentSerializer(serializers.ModelSerializer):
     approved_at = serializers.DateTimeField(read_only=True)
     doctor_name = serializers.ReadOnlyField(source='doctor.user.username')
     patient_name = serializers.ReadOnlyField(source='patient.user.username')
+    prescription = serializers.CharField(required=False, allow_null=True)
+    diagnosis = serializers.CharField(required=False, allow_null=True)
 
     class Meta:
         model = Appointment
-        fields = ['id', 'doctor_id', 'patient_id', 'doctor_name', 'patient_name', 
-                 'date', 'reason', 'is_approved', 'approved_at']
+        fields = [
+            'id', 'doctor_id', 'patient_id', 'doctor_name', 'patient_name',
+            'date', 'reason', 'is_approved', 'approved_at', 'prescription', 'diagnosis'
+        ]
         read_only_fields = ['is_approved', 'approved_at']
 
     def create(self, validated_data):
@@ -66,19 +70,22 @@ class AppointmentSerializer(serializers.ModelSerializer):
         patient = Patient.objects.get(id=patient_id)
 
         appointment = Appointment.objects.create(
-            doctor=doctor, 
-            patient=patient, 
+            doctor=doctor,
+            patient=patient,
             **validated_data
         )
         return appointment
+
 
 class PatientAppointmentSerializer(serializers.ModelSerializer):
     doctor_name = serializers.ReadOnlyField(source="doctor.user.username")
     patient_name = serializers.ReadOnlyField(source="patient.user.username")
     approved_at = serializers.DateTimeField(read_only=True)
+    prescription = serializers.CharField(read_only=True)
+    diagnosis = serializers.CharField(read_only=True)
 
     class Meta:
         model = Appointment
         fields = ['id', 'doctor_name', 'patient_name', 'date', 'reason', 
-                 'is_approved', 'approved_at']
-        read_only_fields = ['is_approved', 'approved_at']
+                 'is_approved', 'approved_at', 'prescription', 'diagnosis']
+        read_only_fields = ['is_approved', 'approved_at', 'prescription', 'diagnosis']

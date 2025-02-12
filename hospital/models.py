@@ -7,7 +7,7 @@ class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     specialty = models.CharField(max_length=100)
 
-    def __str__(self):  # Fixed method name
+    def __str__(self):  
         return self.user.username
 
 class Patient(models.Model):
@@ -25,8 +25,10 @@ class Appointment(models.Model):
     date = models.DateTimeField()
     reason = models.TextField()
     is_approved = models.BooleanField(default=False)
+    prescription = models.TextField(blank=True, null=True)  
+    diagnosis = models.TextField(blank=True, null=True)  
 
-    def __str__(self):  # Fixed method name
+    def __str__(self):
         return f"Appointment for {self.patient.user.username} with Dr. {self.doctor.user.username} on {self.date}"
 
     def clean(self):
