@@ -31,7 +31,7 @@ class DoctorSerializer(serializers.ModelSerializer):
 class PatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
-        fields = ['user', 'birth_date', 'phone_number',]  # Include phone_number
+        fields = ['user', 'birth_date', 'phone_number',]  
 
 class NotificationSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)

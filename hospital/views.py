@@ -21,11 +21,9 @@ class PatientSignup(APIView):
         if not username or not email or not password or not birth_date or not phone_number:
             return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check if email already exists
         if User.objects.filter(email=email).exists():
             return Response({"error": "Email already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check if username already exists
         if User.objects.filter(username=username).exists():
             return Response({"error": "Username already exists"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -58,7 +56,7 @@ class PatientLogin(APIView):
                 return Response({
                     "message": "Patient login successful",
                     "patient_id": patient.id,
-                    "patient_name": user.first_name or user.username  # Use first_name if available
+                    "patient_name": user.first_name or user.username  
                 })
             return Response({"error": "No associated patient found"}, status=status.HTTP_404_NOT_FOUND)
         return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -188,12 +186,12 @@ class UpdateAppointmentDetailsView(APIView):
             if not appointment.is_approved:
                 return Response({"error": "Appointment is not approved yet"}, status=status.HTTP_400_BAD_REQUEST)
             
-            # Fix the field names to match the model
+           
             appointment.prescription = request.data.get('prescription', appointment.prescription)
             appointment.diagnosis = request.data.get('diagnosis', appointment.diagnosis)
             appointment.save()
             
-            # Create a notification for the patient
+            
             Notification.objects.create(
                 patient=appointment.patient,
                 message=f"Dr. {appointment.doctor.user.username} has updated your appointment details."

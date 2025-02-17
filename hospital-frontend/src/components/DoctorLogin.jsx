@@ -22,16 +22,15 @@ function DoctorLogin() {
       const result = await response.json();
   
       if (response.ok) {
-        const { doctor_id } = result;  // Get doctor_id from response
-        const doctorName = username;  // Use the username as the doctor name
+        const { doctor_id } = result;  
+        const doctorName = username;  
   
-        // Store doctor info in localStorage
         localStorage.setItem("doctorId", doctor_id);
-        localStorage.setItem("doctorName", doctorName); // Store doctor name as well
+        localStorage.setItem("doctorName", doctorName); 
         localStorage.setItem("role", "doctor");
   
         alert("Doctor login successful!");
-        navigate("/doctor/dashboard");  // Redirect to dashboard after login
+        navigate("/doctor/dashboard");  
       } else {
         setErrorMessage(result.error || "Something went wrong.");
       }
@@ -50,7 +49,6 @@ function DoctorLogin() {
     >
       <div className="bg-white p-8 rounded-lg shadow-lg w-full sm:w-80 md:w-96 max-w-md">
         <h2 className="text-2xl font-semibold text-center text-blue-600 mb-6">Doctor Login</h2>
-
         <form onSubmit={handleSubmit}>
           <div className="mb-5">
             <label className="block text-gray-600 text-sm font-medium mb-2">Username</label>

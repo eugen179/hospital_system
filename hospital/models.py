@@ -35,7 +35,6 @@ class Appointment(models.Model):
         if not self.date:
             return
 
-        # Check for overlapping appointments
         time_threshold = timedelta(minutes=30)
         start_time = self.date - time_threshold
         end_time = self.date + time_threshold
@@ -61,5 +60,5 @@ class Notification(models.Model):
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def __str__(self):  # Fixed method name
+    def __str__(self):  
         return f"Notification for {self.patient.user.username}"
